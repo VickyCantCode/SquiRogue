@@ -2,6 +2,8 @@
 
 A small turn-based dungeon roguelike runner experimenting with Squirrel scripting syntax and an in-browser ASCII canvas.
 
+**Play Online:** [https://squirogue.vercel.app/](https://squirogue.vercel.app/)
+
 ## Why I made this
 
 I was always curious about how lightweight game scripting languages like Squirrel work (it is used in engines like Source and multiplayer mods like VC:MP). So i wrote the core game mechanics and turn rules in `game.nut` first.
