@@ -20,7 +20,7 @@ Then to make it easily playable for anyone without needing to install the Squirr
 Open `index.html` directly in your browser:
 
 ```bash
-git clone https://github.com/vicky/squirogue.git
+git clone https://github.com/VickyCantCode/squirogue.git
 cd squirogue
 # Open index.html in your browser
 ```
