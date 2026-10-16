@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SquiRogue - Dungeon Runner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d0e12;
+      color: #e4e4e7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .game-container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .game-header {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .game-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f4f4f5;
+      letter-spacing: -0.01em;
+    }
+    .game-badge {
+      font-size: 0.72rem;
+      font-family: monospace;
+      background: #1f222e;
+      color: #9ba1b6;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #2d3244;
+    }
+    #screen {
+      background: #06070a;
+      border: 2px solid #27272a;
+      padding: clamp(10px, 3vw, 18px);
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: clamp(12px, 3.8vw, 19px);
+      line-height: 1.35;
+      letter-spacing: clamp(2px, 0.9vw, 4px);
+      white-space: pre;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    #hud {
+      margin-top: 12px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #a1a1aa;
+      font-family: monospace;
+      background: #14161f;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #25293d;
+    }
+    .hp-badge {
+      color: #ef4444;
+      font-weight: bold;
+    }
+    .atk-badge {
+      color: #f59e0b;
+      font-weight: bold;
+    }
+    #log {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: #10b981;
+      min-height: 20px;
+      font-family: monospace;
+    }
+    .dpad-container {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .dpad-row {
+      display: flex;
+      gap: 6px;
+    }
+    .dpad-btn {
+      width: 52px;
+      height: 50px;
+      background: #181a24;
+      border: 1px solid #2f354a;
+      color: #f1f3f9;
+      font-size: 1.15rem;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .dpad-btn:active {
+      background: #6366f1;
+      transform: scale(0.94);
+    }
+    .dpad-spacer {
+      width: 52px;
+      height: 50px;
+      visibility: hidden;
+    }
+    .controls-hint {
+      margin-top: 10px;
+      font-size: 0.74rem;
+      color: #656b82;
+    }
+    .restart-btn {
+      margin-top: 10px;
+      padding: 8px 18px;
+      background: #6366f1;
+      border: none;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.82rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="game-header">
+      <span class="game-title">SquiRogue</span>
+      <span class="game-badge">Squirrel Mechanics</span>
+    </div>
+
+    <div id="screen"></div>
+
+    <div id="hud">
+      <span>HP: <span id="hp" class="hp-badge">30</span>/30</span>
+      <span>ATK: <span class="atk-badge">8</span></span>
+      <span>FOES: <span id="foes">2</span></span>
+    </div>
+
+    <div id="log">Explore the dungeon! Tap D-Pad or press WASD/Arrows.</div>
+
+    <div class="dpad-container" id="dpad">
+      <div class="dpad-row">
+        <button type="button" class="dpad-btn" id="btn-up" aria-label="Up">▲</button>
+      </div>
+      <div class="dpad-row">
+        <button type="button" class="dpad-btn" id="btn-left" aria-label="Left">◀</button>
+        <button type="button" class="dpad-btn" id="btn-down" aria-label="Down">▼</button>
+        <button type="button" class="dpad-btn" id="btn-right" aria-label="Right">▶</button>
+      </div>
+    </div>
+
+    <button type="button" class="restart-btn" id="btn-restart">Restart Dungeon</button>
+
+    <div class="controls-hint">Keyboard: WASD / Arrow Keys | Mobile: Touch D-Pad</div>
+  </div>
+
+  <script>
+    const W = 22, H = 12;
+    let p = { x: 3, y: 3, hp: 30, maxHp: 30, atk: 8 };
+    let enemies = [];
+    let map = [];
+
+    function initGame() {
+      p.x = 3;
+      p.y = 3;
+      p.hp = 30;
+      enemies = [
+        { x: 8, y: 4, hp: 16, atk: 4 },
+        { x: 15, y: 8, hp: 20, atk: 5 }
+      ];
+      map = [];
+      for (let y = 0; y < H; y++) {
+        let r = [];
+        for (let x = 0; x < W; x++) {
+          r.push(x === 0 || x === W - 1 || y === 0 || y === H - 1 ? '#' : '.');
+        }
+        map.push(r);
+      }
+      document.getElementById('log').textContent = 'Explore the dungeon!';
+      document.getElementById('btn-restart').style.display = 'none';
+      render();
+    }
+
+    function render() {
+      let out = '';
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          if (p.x === x && p.y === y) out += '@';
+          else {
+            let e = enemies.find(en => en.hp > 0 && en.x === x && en.y === y);
+            out += e ? 'E' : map[y][x];
+          }
+        }
+        out += '\n';
+      }
+      document.getElementById('screen').textContent = out;
+      document.getElementById('hp').textContent = Math.max(0, p.hp);
+      const aliveFoes = enemies.filter(en => en.hp > 0).length;
+      document.getElementById('foes').textContent = aliveFoes;
+    }
+
+    function move(dx, dy) {
+      if (p.hp <= 0) return;
+      let nx = p.x + dx, ny = p.y + dy;
+      if (map[ny][nx] === '#') return;
+
+      let target = enemies.find(en => en.hp > 0 && en.x === nx && en.y === ny);
+      if (target) {
+        target.hp -= p.atk;
+        document.getElementById('log').textContent = `Hit enemy for ${p.atk} damage!`;
+        if (target.hp <= 0) document.getElementById('log').textContent = 'Enemy defeated!';
+      } else {
+        p.x = nx;
+        p.y = ny;
+      }
+
+      enemies.forEach(en => {
+        if (en.hp > 0 && Math.abs(en.x - p.x) <= 1 && Math.abs(en.y - p.y) <= 1) {
+          p.hp -= en.atk;
+          document.getElementById('log').textContent = `Enemy hit you for ${en.atk} damage!`;
+        }
+      });
+
+      if (p.hp <= 0) {
+        document.getElementById('log').textContent = 'You died! Tap Restart to try again.';
+        document.getElementById('btn-restart').style.display = 'inline-block';
+      } else if (enemies.every(en => en.hp <= 0)) {
+        document.getElementById('log').textContent = 'All enemies defeated! Dungeon cleared!';
+        document.getElementById('btn-restart').style.display = 'inline-block';
+      }
+
+      render();
+    }
+
+    window.addEventListener('keydown', e => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+      }
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') move(0, -1);
+      else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') move(0, 1);
+      else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') move(-1, 0);
+      else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') move(1, 0);
+    });
+
+    function bindBtn(id, dx, dy) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const handler = (e) => {
+        e.preventDefault();
+        move(dx, dy);
+      };
+      el.addEventListener('pointerdown', handler);
+    }
+
+    bindBtn('btn-up', 0, -1);
+    bindBtn('btn-down', 0, 1);
+    bindBtn('btn-left', -1, 0);
+    bindBtn('btn-right', 1, 0);
+
+    document.getElementById('btn-restart').addEventListener('click', initGame);
+
+    initGame();
+  </script>
+</body>
+</html>
